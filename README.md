@@ -61,7 +61,6 @@ This system is helpful in managing and applying different types of Coupons to th
   it is adding the count of quantity of that free item, rather ot should apply the discount for that item which is same as its MRP or buying price
 
   - I have not considered this requiement and gone with my approach to keep the quantity same and giving discount equals to that item price.
-```
 
 ---
 
