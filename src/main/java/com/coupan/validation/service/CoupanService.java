@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -69,103 +70,71 @@ public class CoupanService {
         }
     }
 
-    public List<ApplicableCoupansDTO> coupanApplicable(Cart cart){
+    public List<ApplicableCoupansDTO> coupanApplicable(Cart cart) {
         List<Coupan> activeCoupans = coupanRepo.findByIsActiveTrue();
 
         return activeCoupans.stream()
-                        .filter(coupan -> !coupan.isExpired())
-                                .map(coupan -> {
-                                    double discount = calcDiscount(coupan, cart);
-                                    if(discount > 0) {
-                                        ApplicableCoupansDTO response = new ApplicableCoupansDTO();
-                                        response.setId(coupan.getId());
-                                        response.setType(coupan.getType());
-                                        response.setDiscountOffered(discount);
-                                        return response;
-                                    } else {
-                                        return null;
-                                    }
+                .filter(coupan -> !coupan.isExpired())
+                .map(coupan -> {
+                    double discount = calcDiscount(coupan, cart);
+                    return discount > 0 ? createApplicableCoupansDTO(coupan, discount) : null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
 
-    }). collect(Collectors.toList());
+    private ApplicableCoupansDTO createApplicableCoupansDTO(Coupan coupan, double discount) {
+        ApplicableCoupansDTO response = new ApplicableCoupansDTO();
+        response.setId(coupan.getId());
+        response.setType(coupan.getType());
+        response.setDiscountOffered(discount);
+        return response;
     }
 
     public double calcDiscount(Coupan coupan, Cart cart) {
-        String type = coupan.getType();
-
-        if(type.equalsIgnoreCase("cart-wise")) {
-            return calcCartWiseDiscount(coupan, cart);
+        switch (coupan.getType().toLowerCase()) {
+            case "cart-wise":
+                return calcCartWiseDiscount(coupan, cart);
+            case "product-wise":
+                return calcProductWiseDiscount(coupan, cart);
+            case "bxgy":
+                return calcBxGyDiscount(coupan, cart);
+            default:
+                return 0;
         }
-
-        else if(type.equalsIgnoreCase("product-wise")) {
-            return calcProductWiseDiscount(coupan, cart);
-        }
-
-        else if(type.equalsIgnoreCase("BxGy")) {
-            return calcBxGyDiscount(coupan, cart);
-        }
-        return 0;
     }
 
-
     public double calcCartWiseDiscount(Coupan coupan, Cart cart) {
-        double totalCartValue =  cart.getCartItemList().stream()
+        double totalCartValue = cart.getCartItemList().stream()
                 .mapToDouble(item -> item.getQuantity() * item.getPrice())
                 .sum();
 
-        if(totalCartValue > coupan.getThresholdAmount()) {
-            return totalCartValue * (coupan.getDiscountPercentage()/100);
-        }
-        return 0;
+        return totalCartValue > coupan.getThresholdAmount() ? totalCartValue * (coupan.getDiscountPercentage() / 100) : 0;
     }
-
 
     public double calcProductWiseDiscount(Coupan coupan, Cart cart) {
-
-        boolean checkApplicable = coupan.getProductIds()
-                .stream()
-                .anyMatch(productId  -> cart.getCartItemList()
-                        .stream()
-                        .anyMatch(cartItem -> cartItem.getId().equals(productId)));
-
-        double discount = 0.0;
-
-        if(checkApplicable) {
-            for(CartItem items: cart.getCartItemList()) {
-                if(coupan.getProductIds().contains(items.getId())) {
-                    double productValue = items.getQuantity() * items.getPrice() ;
-                    discount += productValue * (coupan.getDiscountPercentage() /100);
-                }
-            }
-        }
-        return discount;
+        return cart.getCartItemList().stream()
+                .filter(item -> coupan.getProductIds().contains(item.getId()))
+                .mapToDouble(item -> item.getQuantity() * item.getPrice() * (coupan.getDiscountPercentage() / 100))
+                .sum();
     }
 
-
     public double calcBxGyDiscount(Coupan coupan, Cart cart) {
-        int productCountFromBuyList = 0;
+        int productCountFromBuyList = cart.getCartItemList().stream()
+                .filter(item -> coupan.getBuyProducts().contains(item.getId()))
+                .mapToInt(CartItem::getQuantity)
+                .sum();
 
-        // calclulating total num of products biught from BuyList
-        for (CartItem item : cart.getCartItemList()) {
-            if (coupan.getBuyProducts().contains(item.getId())) {
-                productCountFromBuyList += item.getQuantity();
-            }
+        if (coupan.getBuyQunatity() <= 0) {
+            throw new IllegalArgumentException("Buy quantity cannot be zero.");
         }
 
-        int coupanApplicableTimes = 0;
-
-        if (coupan.getBuyQunatity() > 0) {
-            coupanApplicableTimes = Math.min(productCountFromBuyList / coupan.getBuyQunatity(), coupan.getRepetitionLimit());
-        } else {
-            System.err.println("Buy quantity cannot be zero.");
-        }
+        int coupanApplicableTimes = Math.min(productCountFromBuyList / coupan.getBuyQunatity(), coupan.getRepetitionLimit());
         int freeItemsQuantity = coupanApplicableTimes * coupan.getGetQuantity();
 
-        // calculating discount value based on items in GetList
         double discount = 0;
-
-        for(CartItem item : cart.getCartItemList()) {
-            if(coupan.getGetProducts().contains(item.getId()) && freeItemsQuantity > 0) {
-
+        for (CartItem item : cart.getCartItemList()) {
+            if (coupan.getGetProducts().contains(item.getId()) && freeItemsQuantity > 0) {
                 int itemsFreeCount = Math.min(freeItemsQuantity, item.getQuantity());
                 discount += itemsFreeCount * item.getPrice();
                 freeItemsQuantity -= itemsFreeCount;
@@ -174,96 +143,52 @@ public class CoupanService {
         return discount;
     }
 
-
-// coupan applying to the cart Items
-
     public Cart applyCoupan(Cart cart, long id) {
-
         Optional<Coupan> couponDetails = coupanRepo.findById(id);
-        Cart updatedCart = new Cart();
-
-        double discount = 0;
-
-        if(couponDetails.isPresent()) {
-            Coupan coupon = couponDetails.get();
-            List<CartItem> cartItems = cart.getCartItemList();
-            List<CartItem> updatedCartItemList = new ArrayList<>();
-
-            Long productIdForProductWiseDiscount = 0L;
-
-            if(coupon.getType().equals("cart-wise")) {
-                discount = calcCartWiseDiscount(coupon, cart);
-            }
-
-            if(coupon.getType().equals("product-wise")) {
-                discount = calcProductWiseDiscount(coupon, cart);
-                for(CartItem uniqueItem: cartItems) {
-                    if(coupon.getProductIds().contains(uniqueItem.getId())) {
-                        productIdForProductWiseDiscount = uniqueItem.getId();
-                    }
-                }
-            }
-
-            int freeItemsQuantity=0;
-
-            if(coupon.getType().equalsIgnoreCase("BxGy")) {
-                discount = calcBxGyDiscount(coupon,cart);
-                freeItemsQuantity = calculateFreeItemsQuantity(coupon, cart);
-            }
-
-            for(CartItem item: cartItems) {
-                CartItem updatedCartItem = new CartItem();
-
-                    updatedCartItem.setId(item.getId());
-                    updatedCartItem.setPrice(item.getPrice());
-                    updatedCartItem.setQuantity(item.getQuantity());
-
-                    if(coupon.getType().equalsIgnoreCase("BxGy") &&
-                            coupon.getGetProducts().contains(item.getId()) &&
-                            freeItemsQuantity > 0) {
-
-                        int itemsFreeCount = Math.min(freeItemsQuantity, item.getQuantity());
-                        double itemDiscount = itemsFreeCount * item.getPrice();
-                        updatedCartItem.setTotalDiscount(itemDiscount);
-                    }
-
-                    if(coupon.getType().equalsIgnoreCase("cart-wise") ||
-                            item.getId().equals(productIdForProductWiseDiscount)) {
-
-                        updatedCartItem.setTotalDiscount(item.getPrice() * item.getQuantity() * (coupon.getDiscountPercentage() /100));
-                    }
-                    updatedCartItemList.add(updatedCartItem);
-            }
-
-            double totalCartValue =  cart.getCartItemList().stream()
-                    .mapToDouble(item -> item.getQuantity() * item.getPrice())
-                    .sum();
-
-            updatedCart.setCartItemList(updatedCartItemList);
-            updatedCart.setTotalDiscount(discount);
-            updatedCart.setTotalPrice(totalCartValue);
-            updatedCart.setFinalPrice(totalCartValue - discount);
+        if (!couponDetails.isPresent()) {
+            return cart;
         }
+
+        Coupan coupon = couponDetails.get();
+        double discount = calcDiscount(coupon, cart);
+        List<CartItem> updatedCartItemList = cart.getCartItemList().stream()
+                .map(item -> updateCartItem(item, coupon, discount))
+                .collect(Collectors.toList());
+
+        double totalCartValue = cart.getCartItemList().stream()
+                .mapToDouble(item -> item.getQuantity() * item.getPrice())
+                .sum();
+
+        Cart updatedCart = new Cart();
+        updatedCart.setCartItemList(updatedCartItemList);
+        updatedCart.setTotalDiscount(discount);
+        updatedCart.setTotalPrice(totalCartValue);
+        updatedCart.setFinalPrice(totalCartValue - discount);
+
         return updatedCart;
     }
 
+    private CartItem updateCartItem(CartItem item, Coupan coupon, double discount) {
+        CartItem updatedCartItem = new CartItem();
+        updatedCartItem.setId(item.getId());
+        updatedCartItem.setPrice(item.getPrice());
+        updatedCartItem.setQuantity(item.getQuantity());
 
-    private int calculateFreeItemsQuantity(Coupan coupan, Cart cart) {
-        int productCountFromBuyList = 0;
-
-        for (CartItem item : cart.getCartItemList()) {
-            if (coupan.getBuyProducts().contains(item.getId())) {
-                productCountFromBuyList += item.getQuantity();
-            }
+        if (coupon.getType().equalsIgnoreCase("BxGy") && coupon.getGetProducts().contains(item.getId())) {
+            int freeItemsQuantity = calculateFreeItemsQuantity(coupon, item);
+            int itemsFreeCount = Math.min(freeItemsQuantity, item.getQuantity());
+            updatedCartItem.setTotalDiscount(itemsFreeCount * item.getPrice());
+        } else if (coupon.getType().equalsIgnoreCase("cart-wise") || coupon.getProductIds().contains(item.getId())) {
+            updatedCartItem.setTotalDiscount(item.getPrice() * item.getQuantity() * (coupon.getDiscountPercentage() / 100));
         }
 
-        if (coupan.getBuyQunatity() > 0) {
-            int coupanApplicableTimes = Math.min(productCountFromBuyList / coupan.getBuyQunatity(), coupan.getRepetitionLimit());
-            return coupanApplicableTimes * coupan.getGetQuantity();
-        } else {
-            System.err.println("Buy quantity cannot be zero.");
-            return 0;
-        }
+        return updatedCartItem;
+    }
+
+    private int calculateFreeItemsQuantity(Coupan coupan, CartItem item) {
+        int productCountFromBuyList = item.getQuantity();
+        int coupanApplicableTimes = Math.min(productCountFromBuyList / coupan.getBuyQunatity(), coupan.getRepetitionLimit());
+        return coupanApplicableTimes * coupan.getGetQuantity();
     }
 
 }
