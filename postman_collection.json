@@ -1,0 +1,211 @@
+{
+  "collection": {
+    "info": {
+      "_postman_id": "9bcee386-d2b4-4448-98e1-8bbf93595108",
+      "name": "Coupan CRUD",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "updatedAt": "2024-11-19T17:43:18.000Z",
+      "createdAt": "2024-11-18T19:16:00.000Z",
+      "lastUpdatedBy": "33138213",
+      "uid": "33138213-9bcee386-d2b4-4448-98e1-8bbf93595108"
+    },
+    "item": [
+      {
+        "name": "getCoupan",
+        "id": "6fde3158-557e-4102-b55b-e0a6a8f91560",
+        "protocolProfileBehavior": {
+          "disableBodyPruning": true
+        },
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "http://localhost:8080/coupans/get",
+            "protocol": "http",
+            "host": [
+              "localhost"
+            ],
+            "port": "8080",
+            "path": [
+              "coupans",
+              "get"
+            ]
+          }
+        },
+        "response": [],
+        "uid": "33138213-6fde3158-557e-4102-b55b-e0a6a8f91560"
+      },
+      {
+        "name": "add Coupan",
+        "id": "80f847d6-0002-4211-b933-47f84f762a21",
+        "protocolProfileBehavior": {
+          "disableBodyPruning": true
+        },
+        "request": {
+          "method": "POST",
+          "header": [],
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"id\": 1,\r\n  \"type\": \"Percentage\",\r\n  \"description\": \"10% off on electronics\",\r\n  \"productIds\": [101, 102, 103],\r\n  \"discountPercentage\": 10.0,\r\n  \"thresholdAmount\": 500.0,\r\n  \"buyQunatity\": 2,\r\n  \"getQuantity\": 1,\r\n  \"repetitionLimit\": 5,\r\n  \"isActive\": true,\r\n  \"coupanExpiryDate\": \"2024-12-31\"\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          },
+          "url": {
+            "raw": "https://localhost:8080/coupans/add",
+            "protocol": "https",
+            "host": [
+              "localhost"
+            ],
+            "port": "8080",
+            "path": [
+              "coupans",
+              "add"
+            ]
+          }
+        },
+        "response": [],
+        "uid": "33138213-80f847d6-0002-4211-b933-47f84f762a21"
+      },
+      {
+        "name": "Apply Coupon to cart",
+        "id": "93b8da70-ee89-4e26-a528-f7a4e6b22816",
+        "protocolProfileBehavior": {
+          "disableBodyPruning": true
+        },
+        "request": {
+          "method": "POST",
+          "header": [],
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"cartItemList\": [\r\n    {\r\n      \"id\": 301,\r\n      \"quantity\": 2,\r\n      \"price\": 500.0,\r\n      \"totalDiscount\": 0.0,\r\n      \"discountedPrice\": 0.0\r\n    },\r\n    {\r\n      \"id\": 201,\r\n      \"quantity\": 1,\r\n      \"price\": 100.0,\r\n      \"totalDiscount\": 0.0,\r\n      \"discountedPrice\": 0.0\r\n    },\r\n    {\r\n      \"id\": 202,\r\n      \"quantity\": 1,\r\n      \"price\": 1000.0,\r\n      \"totalDiscount\": 0.0,\r\n      \"discountedPrice\": 0.0\r\n    }\r\n  ],\r\n  \"initialPrice\": 0.0,\r\n  \"totalDiscount\": 0.0,\r\n  \"finalPrice\": 0.0\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          },
+          "url": {
+            "raw": "http://localhost:8080/coupans/apply-coupan/2",
+            "protocol": "http",
+            "host": [
+              "localhost"
+            ],
+            "port": "8080",
+            "path": [
+              "coupans",
+              "apply-coupan",
+              "2"
+            ]
+          }
+        },
+        "response": [],
+        "uid": "33138213-93b8da70-ee89-4e26-a528-f7a4e6b22816"
+      },
+      {
+        "name": "update Coupan",
+        "id": "de30b74d-e2c8-410e-a7db-956416c84736",
+        "protocolProfileBehavior": {
+          "disableBodyPruning": true
+        },
+        "request": {
+          "method": "PUT",
+          "header": [],
+          "body": {
+            "mode": "raw",
+            "raw": "{}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          },
+          "url": {
+            "raw": "http://localhost:8080/coupans/update",
+            "protocol": "http",
+            "host": [
+              "localhost"
+            ],
+            "port": "8080",
+            "path": [
+              "coupans",
+              "update"
+            ]
+          }
+        },
+        "response": [],
+        "uid": "33138213-de30b74d-e2c8-410e-a7db-956416c84736"
+      },
+      {
+        "name": "Delete COupon",
+        "id": "06369dfe-7abe-45b3-a0b7-7ef70ff6f164",
+        "protocolProfileBehavior": {
+          "disableBodyPruning": true
+        },
+        "request": {
+          "method": "DELETE",
+          "header": [],
+          "body": {
+            "mode": "raw",
+            "raw": "{}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          },
+          "url": {
+            "raw": "http://localhost:8080/coupans/delete",
+            "protocol": "http",
+            "host": [
+              "localhost"
+            ],
+            "port": "8080",
+            "path": [
+              "coupans",
+              "delete"
+            ]
+          }
+        },
+        "response": [],
+        "uid": "33138213-06369dfe-7abe-45b3-a0b7-7ef70ff6f164"
+      },
+      {
+        "name": "Applicable Coupons",
+        "id": "9beb4e43-85ce-4546-824f-ee3a9adcf5a3",
+        "protocolProfileBehavior": {
+          "disableBodyPruning": true
+        },
+        "request": {
+          "method": "POST",
+          "header": [],
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"cartItemList\": [\r\n    {\r\n      \"id\": 301,\r\n      \"quantity\": 2,\r\n      \"price\": 500.0,\r\n      \"totalDiscount\": 0.0,\r\n      \"discountedPrice\": 0.0\r\n    },\r\n    {\r\n      \"id\": 201,\r\n      \"quantity\": 1,\r\n      \"price\": 100.0,\r\n      \"totalDiscount\": 0.0,\r\n      \"discountedPrice\": 0.0\r\n    },\r\n    {\r\n      \"id\": 202,\r\n      \"quantity\": 1,\r\n      \"price\": 1000.0,\r\n      \"totalDiscount\": 0.0,\r\n      \"discountedPrice\": 0.0\r\n    }\r\n  ],\r\n  \"initialPrice\": 0.0,\r\n  \"totalDiscount\": 0.0,\r\n  \"finalPrice\": 0.0\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          },
+          "url": {
+            "raw": "http://localhost:8080/coupans/applicable-coupan",
+            "protocol": "http",
+            "host": [
+              "localhost"
+            ],
+            "port": "8080",
+            "path": [
+              "coupans",
+              "applicable-coupan"
+            ]
+          }
+        },
+        "response": [],
+        "uid": "33138213-9beb4e43-85ce-4546-824f-ee3a9adcf5a3"
+      }
+    ]
+  }
+}
