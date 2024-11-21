@@ -63,7 +63,9 @@ This system is helpful in managing and applying different types of Coupons to th
 - In given PDF at last payload and resposne for BxGy coupan is given. So in reposne when cart is eligible for getting a free item ,
   it is adding the count of quantity of that free item, rather ot should apply the discount for that item which is same as its MRP or buying price
 
-  - I have not considered this requiement and gone with my approach to keep the quantity same and giving discount equals to that item price.
+- I have not considered this requiement and gone with my approach to keep the quantity same and giving discount equals to that item price.
+
+- It's Not mentioned in Requirement that which item / items to give  PRODUCT-WISE coupon discount if we have 2 items from dedicated buying Product List and if 1 product from that list os to be given discount then which item ?
 
 ---
 
