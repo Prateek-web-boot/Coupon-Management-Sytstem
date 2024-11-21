@@ -1,4 +1,4 @@
-package com.coupan.validation.entity;
+package com.coupan.validation.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

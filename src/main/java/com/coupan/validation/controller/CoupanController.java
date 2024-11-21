@@ -1,17 +1,14 @@
 package com.coupan.validation.controller;
 
 import com.coupan.validation.dto.ApplicableCoupansDTO;
-import com.coupan.validation.entity.Cart;
+import com.coupan.validation.dto.Cart;
 import com.coupan.validation.entity.Coupan;
 import com.coupan.validation.service.CoupanService;
-import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.config.RepositoryNameSpaceHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.http.HttpResponse;
 import java.util.List;
 
 @RestController

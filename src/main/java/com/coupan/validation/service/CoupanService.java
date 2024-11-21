@@ -1,14 +1,13 @@
 package com.coupan.validation.service;
 
 import com.coupan.validation.dto.ApplicableCoupansDTO;
-import com.coupan.validation.entity.Cart;
-import com.coupan.validation.entity.CartItem;
+import com.coupan.validation.dto.Cart;
+import com.coupan.validation.dto.CartItem;
 import com.coupan.validation.entity.Coupan;
 import com.coupan.validation.repository.CoupanRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
